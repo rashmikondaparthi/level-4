@@ -1,45 +1,66 @@
-const todoList = () => {
-  let all = [];
-  const add = (todoItem) => {
-    all.push(todoItem);
-  };
-  const markAsComplete = (index) => {
-    all[index].completed = true;
-  };
+/* eslint-disable no-undef */
+"use strict";
+const todoList = require("../todo");
 
-  let today = new Date().toLocaleDateString("en-CA");
+const { all, markAsComplete, add, overdue, dueLater, dueToday } = todoList();
 
-  const overdue = () => {
-    return all.filter((todos) => todos.dueDate < today);
-  };
+var Today = new Date();
+let yesterday = new Date(new Date().setDate(Today.getDate() - 1));
+let tomorrow = new Date(new Date().setDate(Today.getDate() + 1));
 
-  const dueToday = () => {
-    return all.filter((todos) => todos.dueDate === today);
-  };
+Today = Today.toLocaleDateString("en-CA");
+yesterday = yesterday.toLocaleDateString("en-CA");
+tomorrow = tomorrow.toLocaleDateString("en-CA");
 
-  const dueLater = () => {
-    return all.filter((todos) => todos.dueDate > today);
-  };
-
-  function toDisplayableList(list) {
-    return list
-      .map(
-        (todos) =>
-          `${todos.completed ? `[x]` : `[ ]`} ${todos.title} ${
-            todos.dueDate != today ? todos.dueDate : " "
-          }`
-      )
-      .join("\n");
-  }
-  return {
-    all,
-    add,
-    markAsComplete,
-    overdue,
-    dueToday,
-    dueLater,
-    toDisplayableList,
-  };
-};
-
-module.exports = todoList;
+describe("Todolist Test Suit", () => {
+  beforeAll(() => {
+    add({
+      title: "Practise of tailwind css",
+      completed: false,
+      dueDate: yesterday,
+    }),
+      add({
+        title: "Learning Backend",
+        completed: false,
+        dueDate: tomorrow,
+      });
+  });
+  test("Add a new todo in list", () => {
+    const todoItemCount = all.length;
+    add({
+      title: "Learning Jest From Pupilfist",
+      completed: false,
+      dueDate: Today,
+    });
+    expect(all.length).toBe(todoItemCount + 1);
+  });
+  test("should mark a todo as complete", () => {
+    expect(all[0].completed).toBe(false);
+    markAsComplete(0);
+    expect(all[0].completed).toBe(true);
+  });
+  test("retrive all todos that are overdue", () => {
+    const todolist = overdue();
+    expect(
+      todolist.every((todo) => {
+        return todo.dueDate === yesterday;
+      })
+    ).toBe(true);
+  });
+  test("retrive all todos that are duetoday", () => {
+    const todolist = dueToday();
+    expect(
+      todolist.every((todo) => {
+        return todo.dueDate === Today;
+      })
+    ).toBe(true);
+  });
+  test("retrive all todos that are duelater", () => {
+    const todolist = dueLater();
+    expect(
+      todolist.every((todo) => {
+        return todo.dueDate === tomorrow;
+      })
+    ).toBe(true);
+  });
+});
